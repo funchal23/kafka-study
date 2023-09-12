@@ -6,27 +6,22 @@ import org.apache.kafka.common.serialization.StringDeserializer;
 
 import java.time.Duration;
 import java.util.Properties;
+import java.util.regex.Pattern;
 
-public class EmailService {
+public class LogService {
 
     public static void main(String[] args) {
         var consumer = new KafkaConsumer<String, String>(properties());
-        consumer.subscribe(java.util.Collections.singletonList("NEW_TRANSFER_SEND_EMAIL"));
+        consumer.subscribe(Pattern.compile("NEW_TRANSFER.*"));
         while(true){
             var records = consumer.poll(Duration.ofMillis(100));
             if (!records.isEmpty()){
                 for (var record : records){
-                    System.out.println("Sending email...");
+                    System.out.println("Logs...");
                     System.out.println(record.key());
                     System.out.println(record.value());
                     System.out.println(record.partition());
                     System.out.println(record.offset());
-                    try {
-                        Thread.sleep(5000);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                    System.out.println("Email sent!");
                 }
             }
         }
@@ -37,7 +32,7 @@ public class EmailService {
         properties.setProperty(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG,"127.0.0.1:9092");
         properties.setProperty(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
         properties.setProperty(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
-        properties.setProperty(ConsumerConfig.GROUP_ID_CONFIG, EmailService.class.getSimpleName());
+        properties.setProperty(ConsumerConfig.GROUP_ID_CONFIG, LogService.class.getSimpleName());
         return properties;
     }
 }

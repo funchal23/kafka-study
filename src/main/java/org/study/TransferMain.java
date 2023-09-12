@@ -1,5 +1,6 @@
 package org.study;
 
+import org.apache.kafka.clients.producer.Callback;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
@@ -12,15 +13,22 @@ public class TransferMain {
 
     public static void main(String[] args) throws ExecutionException, InterruptedException {
         var producer = new KafkaProducer<String, String>(properties());
-        var value = "1,1,2000";
-        var record = new ProducerRecord<>("NEW_TRANSFER", value, value);
-        producer.send(record, (data, ex) -> {
+        var email = "email@email.com";
+        var value = "idReceiver:1,idConsumer:1,value:2000";
+        var transferSendEmail = new ProducerRecord<>("NEW_TRANSFER_SEND_EMAIL", email, email);
+        var transferValidation = new ProducerRecord<>("NEW_TRANSFER_VALIDATION", value, value);
+        producer.send(transferSendEmail, getCallback()).get();
+        producer.send(transferValidation, getCallback()).get();
+    }
+
+    private static Callback getCallback() {
+        return (data, ex) -> {
             if (ex != null) {
                 ex.printStackTrace();
                 return;
             }
             System.out.println("Success send message! TOPIC:" + data.topic() + " PARTITION:" + data.partition() + " OFFSET:" + data.offset());
-        }).get();
+        };
     }
 
     private static Properties properties() {
