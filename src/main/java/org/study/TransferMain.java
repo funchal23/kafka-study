@@ -7,16 +7,18 @@ import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.StringSerializer;
 
 import java.util.Properties;
+import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 
 public class TransferMain {
 
     public static void main(String[] args) throws ExecutionException, InterruptedException {
         var producer = new KafkaProducer<String, String>(properties());
+        var key = UUID.randomUUID().toString();
         var email = "email@email.com";
         var value = "idReceiver:1,idConsumer:1,value:2000";
-        var transferSendEmail = new ProducerRecord<>("NEW_TRANSFER_SEND_EMAIL", email, email);
-        var transferValidation = new ProducerRecord<>("NEW_TRANSFER_VALIDATION", value, value);
+        var transferSendEmail = new ProducerRecord<>("NEW_TRANSFER_SEND_EMAIL", key, email);
+        var transferValidation = new ProducerRecord<>("NEW_TRANSFER_VALIDATION", key, value);
         producer.send(transferSendEmail, getCallback()).get();
         producer.send(transferValidation, getCallback()).get();
     }
