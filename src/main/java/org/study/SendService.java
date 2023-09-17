@@ -6,21 +6,20 @@ import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.StringSerializer;
 
+import java.io.Closeable;
 import java.util.Properties;
-import java.util.UUID;
-import java.util.concurrent.ExecutionException;
 
-public class TransferMain {
+public class SendService implements Closeable {
 
-    public static void main(String[] args) throws ExecutionException, InterruptedException {
-        var producer = new KafkaProducer<String, String>(properties());
-        var key = UUID.randomUUID().toString();
-        var email = "email@email.com";
-        var value = "idReceiver:1,idConsumer:1,value:2000";
-        var transferSendEmail = new ProducerRecord<>("NEW_TRANSFER_SEND_EMAIL", key, email);
-        var transferValidation = new ProducerRecord<>("NEW_TRANSFER_VALIDATION", key, value);
-        producer.send(transferSendEmail, getCallback()).get();
-        producer.send(transferValidation, getCallback()).get();
+    private final KafkaProducer<String, String> producer;
+
+    public SendService(){
+        this.producer = new KafkaProducer<>(properties());
+    }
+
+    public void send(String topic, String key, String value){
+        var record = new ProducerRecord<>(topic, key, value);
+        producer.send(record, getCallback());
     }
 
     private static Callback getCallback() {
@@ -39,5 +38,10 @@ public class TransferMain {
         properties.setProperty(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
         properties.setProperty(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
         return properties;
+    }
+
+    @Override
+    public void close() {
+        producer.close();
     }
 }
